@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
 from config import db_config
 
@@ -162,20 +164,69 @@ def delete_brand(brand_id):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        password = request.form.get('password')
-        if password == 'admin123':  # ✅ 하드코딩된 관리자 비밀번호
-            session['admin'] = True
-            flash("✅ 관리자 로그인 성공", "success")
-            return redirect(url_for('home'))
-        else:
-            flash("❌ 비밀번호가 틀렸습니다.", "danger")
+        email = request.form['email']
+        password = request.form['password']
+
+        try:
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM user WHERE email = %s", (email,))
+            user = cursor.fetchone()
+            if user and check_password_hash(user['password_hash'], password):
+                session['user_id'] = user['id']
+                session['username'] = user['username']
+                session['is_admin'] = user['is_admin']
+                flash("✅ 로그인 성공", "success")
+                return redirect(url_for('home'))
+            else:
+                flash("❌ 이메일 또는 비밀번호가 잘못되었습니다.", "danger")
+        except mysql.connector.Error as e:
+            flash(f"❌ DB 오류: {e}", "danger")
+        finally:
+            cursor.close()
+            conn.close()
+
     return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        confirm = request.form['confirm_password']
+
+        if password != confirm:
+            flash("❌ 비밀번호가 일치하지 않습니다.", "danger")
+            return redirect(url_for('register'))
+
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+        try:
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO user (username, email, password_hash)
+                VALUES (%s, %s, %s)
+            """, (username, email, hashed_password))
+            conn.commit()
+            flash("✅ 회원가입이 완료되었습니다. 로그인해주세요.", "success")
+        except mysql.connector.Error as e:
+            flash(f"❌ DB 오류: {e}", "danger")
+        finally:
+            cursor.close()
+            conn.close()
+
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
 
 @app.route('/logout')
 def logout():
-    session.pop('admin', None)
-    flash("👋 로그아웃되었습니다.", "info")
+    session.clear()
+    flash('로그아웃 되었습니다.', 'info')
     return redirect(url_for('home'))
+
 
 @app.route('/delete_model/<int:model_id>')
 def delete_model(model_id):
@@ -198,7 +249,21 @@ def delete_model(model_id):
     except Exception as e:
         flash(f"❌ 삭제 중 오류 발생: {e}", "danger")
         return redirect(request.referrer or url_for('home'))
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
 
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('is_admin'):
+            return "권한이 없습니다.", 403
+        return f(*args, **kwargs)
+    return decorated
 
 if __name__ == '__main__':
     app.run(debug=True)

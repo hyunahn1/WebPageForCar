@@ -1,11 +1,24 @@
 {% extends "base.html" %}
 {% block title %}로그인{% endblock %}
+
 {% block content %}
-<div class="col-md-6 offset-md-3 mt-4">
-  <h3 class="mb-3">🔐 관리자 로그인</h3>
-  <form method="POST">
-    <input type="password" name="password" class="form-control mb-3" placeholder="비밀번호 입력">
-    <button type="submit" class="btn btn-primary">로그인</button>
-  </form>
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card p-4 shadow-sm" style="width: 100%; max-width: 450px;">
+    <h3 class="text-center mb-4">🔐 로그인</h3>
+    <form method="post">
+      <div class="form-floating mb-3">
+        <input type="email" class="form-control" id="email" name="email" placeholder="이메일" required>
+        <label for="email">이메일</label>
+      </div>
+      <div class="form-floating mb-4">
+        <input type="password" class="form-control" id="password" name="password" placeholder="비밀번호" required>
+        <label for="password">비밀번호</label>
+      </div>
+      <button type="submit" class="btn btn-primary w-100">로그인</button>
+      <div class="mt-3 text-center">
+        <a href="/register">계정이 없으신가요? 회원가입</a>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}
