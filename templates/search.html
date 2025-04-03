@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}검색 결과{% endblock %}
+{% block content %}
+<h2>🔍 "{{ keyword }}" 검색 결과</h2>
+
+<h4>브랜드</h4>
+{% if brands %}
+    <ul class="list-group mb-4">
+        {% for b in brands %}
+            <li class="list-group-item"><a href="/brands/{{ b.id }}">{{ b.name }}</a></li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>해당 키워드를 포함한 브랜드가 없습니다.</p>
+{% endif %}
+
+<h4>모델</h4>
+{% if models %}
+    <ul class="list-group">
+        {% for m in models %}
+            <li class="list-group-item">{{ m.brand_name }} - {{ m.model_name }} ({{ m.year }}, {{ m.engine_type }})</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>해당 키워드를 포함한 모델이 없습니다.</p>
+{% endif %}
+{% endblock %}

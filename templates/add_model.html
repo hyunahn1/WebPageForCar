@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>모델 추가</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>➕ 자동차 모델 추가</h1>
+    <form method="POST" action="/add_model">
+        <label>모델명: <input type="text" name="model_name" required></label><br><br>
+        <label>출시 연도: <input type="number" name="year" value="2024"></label><br><br>
+        <label>엔진 타입: <input type="text" name="engine_type"></label><br><br>
+        <label>브랜드:
+            <select name="brand_id" required>
+                {% for brand in brands %}
+                    <option value="{{ brand.id }}">{{ brand.name }}</option>
+                {% endfor %}
+            </select>
+        </label><br><br>
+        <button type="submit">등록하기</button>
+    </form>
+    <p><a href="/brands">← 브랜드 목록으로 돌아가기</a></p>
+</body>
+</html>

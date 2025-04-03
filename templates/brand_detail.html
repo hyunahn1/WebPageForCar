@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ brand.name }}{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+  <h2>{{ brand.name }}</h2>
+
+{% if brand.logo_url %}
+  <div class="text-center my-3">
+    <img src="{{ brand.logo_url }}" alt="{{ brand.name }} 로고"
+         class="img-fluid" style="max-height: 120px;">
+  </div>
+{% endif %}
+
+  {% if brand.history %}
+    <p class="text-muted">{{ brand.history }}</p>
+  {% endif %}
+</div>
+
+{% if models %}
+  <h4 class="mb-3">모델 목록</h4>
+  <ul class="list-group">
+    {% for m in models %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ m.model_name }} ({{ m.year }}, {{ m.engine_type }})
+        {% if session.get('admin') %}
+          <a href="/delete_model/{{ m.id }}" class="btn btn-sm btn-danger"
+             onclick="return confirm('정말 이 모델을 삭제하시겠습니까?');">삭제</a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>📭 등록된 모델이 없습니다.</p>
+{% endif %}
+
+<a href="/brands" class="btn btn-secondary mt-4">← 브랜드 목록으로</a>
+{% endblock %}
